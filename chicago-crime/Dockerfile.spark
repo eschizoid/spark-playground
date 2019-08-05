@@ -1,0 +1,3 @@
+FROM localhost:5000/eschizoid/spark:2.4.3
+
+COPY build/libs/chicago-crime-1.0-SNAPSHOT-all.jar /opt/spark/examples/chicago-crime-1.0-SNAPSHOT-all.jar

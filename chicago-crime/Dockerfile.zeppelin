@@ -1,0 +1,12 @@
+FROM localhost:5000/eschizoid/zeppelin:0.9.0-SNAPSHOT
+
+ENV AWS_JAVA_SDK_VERSION 1.7.4
+ENV GEOSPARK_SCALA_VERSION 2.3
+ENV GEOSPARK_VERSION 1.2.0
+ENV HADOOP_AWS_VERSION 2.7.3
+ENV SPARK_HOME /opt/spark
+
+RUN wget https://www-eu.apache.org/dist/spark/spark-2.4.3/spark-2.4.3-bin-hadoop2.7.tgz &&\
+    tar -xvf spark-2.4.3-bin-hadoop2.7.tgz &&\
+    mv spark-2.4.3-bin-hadoop2.7 /opt &&\
+    ln -s /opt/spark-2.4.3-bin-hadoop2.7 /opt/spark

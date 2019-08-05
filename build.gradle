@@ -1,0 +1,34 @@
+plugins {
+    id 'idea'
+    id 'cz.alenkacz.gradle.scalafmt' version '1.8.0' apply false
+    id 'com.github.johnrengelman.shadow' version '5.0.0' apply false
+    id 'com.github.maiflai.scalatest' version '0.25' apply false
+}
+
+allprojects {
+    repositories {
+        jcenter()
+        maven { url 'http://dl.bintray.com/spark-packages/maven' }
+        maven { url 'http://repo.artima.com/releases' }
+    }
+}
+
+ext {
+    awsJavaSdk = '1.7.4'
+    geosparkSparkVersion = '2.3'
+    geosparkVersion = '1.2.0'
+    hadoopAws = '2.7.3'
+    scalaVersion = '2.11.8'
+    sparkDariaVersion = '0.31.0-s_2.11'
+    sparkVersion = '2.4.3'
+}
+
+subprojects {
+    if (name.startsWith('chicago-crime')) {
+        apply plugin: 'com.github.johnrengelman.shadow'
+        apply plugin: 'cz.alenkacz.gradle.scalafmt'
+        apply plugin: 'com.github.maiflai.scalatest'
+        apply plugin: 'java'
+        apply plugin: 'scala'
+    }
+}
