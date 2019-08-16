@@ -6,7 +6,7 @@ import org.apache.spark.sql.streaming.OutputMode
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import com.github.mrpowers.spark.daria.sql.DataFrameExt._
 
-class Transformer extends SparkSupport {
+class ChicagoCrimeStreamWriter extends SparkSupport {
   private val schema = StructType(
     List(
       StructField("ID", StringType, nullable = true),
@@ -47,7 +47,7 @@ class Transformer extends SparkSupport {
     .schema(schema)
     .option("delimiter", ",")
     .option("header", "true")
-    .load("s3a://spark-playground-datasets/chicago-crime/gold")
+    .load("s3a://spark-playground-datasets/chicago-crime/gold/Crimes_-_2001_to_present.csv")
 
   private val etl = EtlDefinition(
     sourceDF = csv,
@@ -84,6 +84,6 @@ class Transformer extends SparkSupport {
   }
 }
 
-object Transformer {
-  def apply() = new Transformer()
+object ChicagoCrimeStreamWriter {
+  def apply() = new CommunityAreaWriter()
 }
