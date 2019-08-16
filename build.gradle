@@ -15,7 +15,7 @@ allprojects {
 
 ext {
     awsJavaSdk = '1.7.4'
-    geosparkSparkVersion = '2.3'
+    geosparkSparkCompatibleVersion = '2.3'
     geosparkVersion = '1.2.0'
     hadoopAws = '2.7.3'
     scalaVersion = '2.11.8'

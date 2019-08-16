@@ -1,0 +1,591 @@
+﻿{
+  "paragraphs": [
+    {
+      "text": "%spark.conf\nspark.jars.packages org.apache.hadoop:hadoop-aws:2.7.3,com.amazonaws:aws-java-sdk:1.7.4,org.datasyslab:geospark:1.2.0,org.datasyslab:geospark-viz_2.3:1.2.0,org.datasyslab:geospark-sql_2.3:1.2.0,org.datasyslab:sernetcdf:0.1.0,mrpowers:spark-daria:0.31.0-s_2.11\nspark.executor.instances 1\nspark.hadoop.fs.s3a.impl org.apache.hadoop.fs.s3a.S3AFileSystem \nspark.hadoop.fs.s3a.access.key \nspark.hadoop.fs.s3a.secret.key \nzeppelin.spark.sql.stacktrace true",
+      "user": "anonymous",
+      "dateUpdated": "2019-08-09T01:24:45+0000",
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": false,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": []
+      },
+      "apps": [],
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1565309775582_-2041520206",
+      "id": "paragraph_1564447131174_399817610",
+      "dateCreated": "2019-08-09T00:16:15+0000",
+      "dateStarted": "2019-08-09T01:24:45+0000",
+      "dateFinished": "2019-08-09T01:24:45+0000",
+      "status": "FINISHED",
+      "focus": true,
+      "$$hashKey": "object:52180"
+    },
+    {
+      "text": "%spark\nimport org.datasyslab.geosparkviz.sql.utils.GeoSparkVizRegistrator\nimport org.datasyslab.geosparksql.utils.GeoSparkSQLRegistrator\nimport org.apache.spark.sql.functions._\n\nGeoSparkSQLRegistrator.registerAll(spark)\nGeoSparkVizRegistrator.registerAll(spark)\n\nval chicagoCrimesDF = spark\n    .read\n    .parquet(\"s3a://spark-playground-datasets/chicago-crime/silver/year=2001\")\n\nchicagoCrimesDF.registerTempTable(\"chicago_crimes\")\n\n\nimport sqlContext.implicits._\n\nval pointtable = chicagoCrimesDF\n    .filter(!$\"longitude\".isNull || !$\"latitude\".isNull)\n    .select(col(\"longitude\").alias(\"_c0\"), col(\"latitude\").alias(\"_c1\"))\n\npointtable.registerTempTable(\"pointtable\")\npointtable.show()\n\nspark.sql(\n  \"\"\"\n    |CREATE OR REPLACE TEMP VIEW pointtable AS\n    |SELECT ST_Point(cast(pointtable._c0 as Decimal(24,20)),cast(pointtable._c1 as Decimal(24,20))) as shape\n    |FROM pointtable\n  \"\"\".stripMargin)\nspark.sql(\n  \"\"\"\n    |CREATE OR REPLACE TEMP VIEW pointtable AS\n    |SELECT *\n    |FROM pointtable\n    |WHERE ST_Contains(ST_PolygonFromEnvelope(-126.790180,24.863836,-64.630926,50.000),shape)\n  \"\"\".stripMargin)\nspark.sql(\n  \"\"\"\n    |CREATE OR REPLACE TEMP VIEW boundtable AS\n    |SELECT ST_Envelope_Aggr(shape) as bound FROM pointtable\n  \"\"\".stripMargin)\nspark.sql(\n  \"\"\"\n    |CREATE OR REPLACE TEMP VIEW pixels AS\n    |SELECT pixel, shape FROM pointtable\n    |LATERAL VIEW ST_Pixelize(ST_Transform(shape, 'epsg:4326','epsg:3857'), 256, 256, (SELECT ST_Transform(bound, 'epsg:4326','epsg:3857') FROM boundtable)) AS pixel\n  \"\"\".stripMargin)\nspark.sql(\n  \"\"\"\n    |CREATE OR REPLACE TEMP VIEW pixelaggregates AS\n    |SELECT pixel, count(*) as weight\n    |FROM pixels\n    |GROUP BY pixel\n  \"\"\".stripMargin)\nspark.sql(\n  \"\"\"\n    |CREATE OR REPLACE TEMP VIEW images AS\n    |SELECT ST_EncodeImage(ST_Render(pixel, ST_Colorize(weight, (SELECT max(weight) FROM pixelaggregates)))) AS image, (SELECT ST_AsText(bound) FROM boundtable) AS boundary\n    |FROM pixelaggregates\n  \"\"\".stripMargin)\nspark.table(\"images\").show()\nspark.sql(\n  \"\"\"\n    |CREATE OR REPLACE TEMP VIEW wktpoint AS\n    |SELECT ST_AsText(shape) as geom\n    |FROM pointtable\n  \"\"\".stripMargin)",
+      "user": "anonymous",
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": false,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "progressUpdateIntervalMs": 500,
+      "jobName": "20190227-203333_1886473378",
+      "id": "20190227-203333_1886473378",
+      "dateCreated": "2019-08-09T01:27:02+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:52181",
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://b493aac98505:4040/jobs/job?id=0",
+              "$$hashKey": "object:53864"
+            },
+            {
+              "jobUrl": "http://b493aac98505:4040/jobs/job?id=1",
+              "$$hashKey": "object:53865"
+            },
+            {
+              "jobUrl": "http://b493aac98505:4040/jobs/job?id=2",
+              "$$hashKey": "object:53866"
+            },
+            {
+              "jobUrl": "http://b493aac98505:4040/jobs/job?id=3",
+              "$$hashKey": "object:53867"
+            },
+            {
+              "jobUrl": "http://b493aac98505:4040/jobs/job?id=5",
+              "$$hashKey": "object:53868"
+            },
+            {
+              "jobUrl": "http://b493aac98505:4040/jobs/job?id=4",
+              "$$hashKey": "object:53869"
+            },
+            {
+              "jobUrl": "http://b493aac98505:4040/jobs/job?id=6",
+              "$$hashKey": "object:53870"
+            },
+            {
+              "jobUrl": "http://b493aac98505:4040/jobs/job?id=7",
+              "$$hashKey": "object:53871"
+            },
+            {
+              "jobUrl": "http://b493aac98505:4040/jobs/job?id=8",
+              "$$hashKey": "object:53872"
+            },
+            {
+              "jobUrl": "http://b493aac98505:4040/jobs/job?id=9",
+              "$$hashKey": "object:53873"
+            },
+            {
+              "jobUrl": "http://b493aac98505:4040/jobs/job?id=10",
+              "$$hashKey": "object:53874"
+            },
+            {
+              "jobUrl": "http://b493aac98505:4040/jobs/job?id=11",
+              "$$hashKey": "object:53875"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "\u001b[33mwarning: \u001b[0mthere were two deprecation warnings; re-run with -deprecation for details\n+-------------+------------+\n|          _c0|         _c1|\n+-------------+------------+\n|-87.665846779| 41.88186382|\n|-87.645683302|41.808813388|\n|-87.707654064|41.924821484|\n|-87.680596503|41.852052718|\n|-87.724005581|41.815100864|\n|-87.637892213|41.906750073|\n|-87.639470171|41.672282305|\n|-87.666569035|41.735888841|\n|-87.609636339|41.776338386|\n|-87.739704312|41.989011402|\n|-87.661469837|41.868512231|\n|-87.702145773|41.791925356|\n| -87.71942226| 41.93381746|\n|-87.745282497|41.875986277|\n|-87.633420029|41.893086803|\n|-87.629847054|41.893358604|\n|-87.611570535|41.892092606|\n|-87.573326493|41.732554648|\n|-87.763061939| 41.87554081|\n|-87.686484677|41.788553326|\n+-------------+------------+\nonly showing top 20 rows\n\n+--------------------+--------------------+\n|               image|            boundary|\n+--------------------+--------------------+\n|iVBORw0KGgoAAAANS...|POLYGON ((-91.686...|\n+--------------------+--------------------+\n\nimport org.datasyslab.geosparkviz.sql.utils.GeoSparkVizRegistrator\nimport org.datasyslab.geosparksql.utils.GeoSparkSQLRegistrator\nimport org.apache.spark.sql.functions._\n\u001b[1m\u001b[34mchicagoCrimesDF\u001b[0m: \u001b[1m\u001b[32morg.apache.spark.sql.DataFrame\u001b[0m = [id: string, case_number: string ... 27 more fields]\nimport sqlContext.implicits._\n\u001b[1m\u001b[34mpointtable\u001b[0m: \u001b[1m\u001b[32morg.apache.spark.sql.DataFrame\u001b[0m = [_c0: string, _c1: string]\n\u001b[1m\u001b[34mres1\u001b[0m: \u001b[1m\u001b[32morg.apache.spark.sql.DataFrame\u001b[0m = []\n"
+          }
+        ]
+      }
+    },
+    {
+      "text": "%spark.sql\nSELECT *\nFROM wktpoint\nLIMIT 10",
+      "user": "anonymous",
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": false,
+        "checkEmpty": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "geom": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "geospark-zeppelin": {
+                  "geometry": {
+                    "name": "geom",
+                    "index": 0,
+                    "aggr": "sum"
+                  },
+                  "info": {
+                    "name": "geom",
+                    "index": 0,
+                    "aggr": "sum"
+                  }
+                },
+                "multiBarChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                },
+                "stackedAreaChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                },
+                "lineChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                }
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "geom",
+                  "index": 0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [],
+              "values": []
+            },
+            "helium": {}
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "geom\nPOINT (-87.665846779 41.88186382)\nPOINT (-87.645683302 41.808813388)\nPOINT (-87.707654064 41.924821484)\nPOINT (-87.680596503 41.852052718)\nPOINT (-87.724005581 41.815100864)\nPOINT (-87.637892213 41.906750073)\nPOINT (-87.639470171 41.672282305)\nPOINT (-87.666569035 41.735888841)\nPOINT (-87.609636339 41.776338386)\nPOINT (-87.739704312 41.989011402)\n"
+          },
+          {
+            "type": "TEXT",
+            "data": ""
+          }
+        ]
+      },
+      "apps": [],
+      "progressUpdateIntervalMs": 500,
+      "jobName": "20190227-203351_1519829707",
+      "id": "20190227-203351_1519829707",
+      "dateCreated": "2019-08-09T01:27:11+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:52182",
+      "runtimeInfos": {}
+    },
+    {
+      "text": "%spark.sql\nSELECT *, 'I am the map center!'\nFROM images",
+      "user": "anonymous",
+      "dateUpdated": "2019-08-09T01:17:04+0000",
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": false,
+        "checkEmpty": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "geospark-zeppelin",
+              "height": 300,
+              "optionOpen": true,
+              "setting": {
+                "table": {
+                  "tableGridState": {
+                    "columns": [
+                      {
+                        "name": "st_encodeimage(image)",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {
+                          "priority": 0,
+                          "direction": "asc"
+                        },
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "1.0",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      }
+                    ],
+                    "scrollFocus": {},
+                    "selection": [],
+                    "grouping": {
+                      "grouping": [],
+                      "aggregations": [],
+                      "rowExpandedStates": {}
+                    },
+                    "treeView": {},
+                    "pagination": {
+                      "paginationCurrentPage": 1,
+                      "paginationPageSize": 250
+                    }
+                  },
+                  "tableColumnTypeState": {
+                    "names": {
+                      "image": "string",
+                      "boundary": "string",
+                      "I am the map center!": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "zeppelin-leaflet": {},
+                "multiBarChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                },
+                "stackedAreaChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                },
+                "lineChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                },
+                "geospark-zeppelin": {
+                  "geometry": {
+                    "name": "boundary",
+                    "index": 1,
+                    "aggr": "sum"
+                  },
+                  "info": {
+                    "name": "I am the map center!",
+                    "index": 2,
+                    "aggr": "sum"
+                  },
+                  "mapimage": {
+                    "name": "image",
+                    "index": 0,
+                    "aggr": "sum"
+                  }
+                }
+              },
+              "keys": [],
+              "groups": [],
+              "values": [],
+              "commonSetting": {}
+            },
+            "helium": {}
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "image\tboundary\tI am the map center!\niVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAABqklEQVR42u3bQQ6DIBAF0LkkV+MQXJJKrYnpyrIqzHvJxIW7SfgyqBHAUnpEHVX6cS1R23H9vneVbsGGi/9plS4EYOkFH/2s9xM/fi8hAOsmwBkAkzsAAQAbaZO7AJ2DxGcBYRcAuYPAKACJA0C3IHEQ6BJs6unhoE7BJsZM3z5fAxoFINOWf/J1oACARHO/IABhIADASCAEQAgIAMg5BpTrr8ImACBfINwWf/dpMOQKg/FT0H1U0BkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIA/1npUXYCcXlsXiHKejtvcAAAAAElFTkSuQmCC\tPOLYGON ((-91.686565684 36.619446395, -91.686565684 42.022878225, -87.524674966 42.022878225, -87.524674966 36.619446395, -91.686565684 36.619446395))\tI am the map center!\n"
+          },
+          {
+            "type": "TEXT",
+            "data": ""
+          }
+        ]
+      },
+      "apps": [],
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1565309775585_2072833592",
+      "id": "20190227-203400_1171762279",
+      "dateCreated": "2019-08-09T00:16:15+0000",
+      "dateStarted": "2019-08-09T01:17:04+0000",
+      "dateFinished": "2019-08-09T01:18:27+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:52183"
+    },
+    {
+      "text": "%spark.sql\n\nSELECT primary_type, count(*) as count\nFROM chicago_crimes\nGROUP BY primary_type\nORDER BY count DESC",
+      "user": "anonymous",
+      "dateUpdated": "2019-08-09T00:39:05+0000",
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": false,
+        "checkEmpty": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "pieChart",
+              "height": 300,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {
+                    "columns": [
+                      {
+                        "name": "primary_type0",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "count(1)1",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {
+                          "priority": 0,
+                          "direction": "asc"
+                        },
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      }
+                    ],
+                    "scrollFocus": {},
+                    "selection": [],
+                    "grouping": {
+                      "grouping": [],
+                      "aggregations": [],
+                      "rowExpandedStates": {}
+                    },
+                    "treeView": {},
+                    "pagination": {
+                      "paginationCurrentPage": 1,
+                      "paginationPageSize": 250
+                    }
+                  },
+                  "tableColumnTypeState": {
+                    "names": {
+                      "primary_type": "string",
+                      "count": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "multiBarChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                }
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "primary_type",
+                  "index": 0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [],
+              "values": [
+                {
+                  "name": "count",
+                  "index": 1,
+                  "aggr": "sum"
+                }
+              ]
+            },
+            "helium": {}
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "primary_type\tcount\nTHEFT\t32417\nBATTERY\t27564\nCRIMINAL DAMAGE\t14471\nASSAULT\t11540\nOTHER OFFENSE\t9540\nDECEPTIVE PRACTICE\t9200\nNARCOTICS\t7660\nBURGLARY\t5007\nMOTOR VEHICLE THEFT\t4921\nROBBERY\t4147\nCRIMINAL TRESPASS\t3752\nWEAPONS VIOLATION\t3460\nOFFENSE INVOLVING CHILDREN\t1321\nPUBLIC PEACE VIOLATION\t876\nCRIM SEXUAL ASSAULT\t854\nINTERFERENCE WITH PUBLIC OFFICER\t853\nSEX OFFENSE\t679\nPROSTITUTION\t369\nHOMICIDE\t274\nARSON\t185\nSTALKING\t123\nLIQUOR LAW VIOLATION\t114\nCONCEALED CARRY LICENSE VIOLATION\t112\nKIDNAPPING\t101\nINTIMIDATION\t88\nGAMBLING\t65\nOBSCENITY\t29\nHUMAN TRAFFICKING\t7\nPUBLIC INDECENCY\t4\nNON-CRIMINAL\t4\nOTHER NARCOTIC VIOLATION\t3\n"
+          },
+          {
+            "type": "TEXT",
+            "data": ""
+          }
+        ]
+      },
+      "apps": [],
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1565310574291_-352017128",
+      "id": "paragraph_1565310574291_-352017128",
+      "dateCreated": "2019-08-09T00:29:34+0000",
+      "dateStarted": "2019-08-09T00:39:05+0000",
+      "dateFinished": "2019-08-09T00:39:07+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:52184"
+    },
+    {
+      "text": "%spark.sql\n",
+      "user": "anonymous",
+      "dateUpdated": "2019-08-09T00:30:32+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/sql"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1565310632362_2096858477",
+      "id": "paragraph_1565310632362_2096858477",
+      "dateCreated": "2019-08-09T00:30:32+0000",
+      "status": "READY",
+      "$$hashKey": "object:52185"
+    }
+  ],
+  "name": "geospark-zeppelin-demo",
+  "id": "2EJS8CYYW",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.9.0-SNAPSHOT",
+  "permissions": {},
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false,
+    "looknfeel": "default",
+    "personalizedMode": "false"
+  },
+  "info": {},
+  "path": "/geospark-zeppelin-demo"
+}
