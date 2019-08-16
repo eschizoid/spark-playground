@@ -1,6 +1,8 @@
 package ChicagoCrime
 
 object Main extends App with SparkSupport {
-  val transformer = Transformer()
-  transformer.start()
+  val chicagoCrimeStreamWriter = ChicagoCrimeStreamWriter()
+  val communityAreaWriter = CommunityAreaWriter()
+  communityAreaWriter.start()
+  //chicagoCrimeStreamWriter.start()
 }
