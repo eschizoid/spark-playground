@@ -12,13 +12,12 @@ dependencies {
             "org.apache.spark:spark-mllib_2.11:$sparkVersion",
             "org.apache.spark:spark-sql_2.11:$sparkVersion",
             "org.datasyslab:geospark:$geosparkVersion",
-            "org.datasyslab:geospark-sql_$geosparkSparkVersion:$geosparkVersion",
-            "org.datasyslab:geospark-viz_$geosparkSparkVersion:$geosparkVersion",
+            "org.datasyslab:geospark-sql_$geosparkSparkCompatibleVersion:$geosparkVersion",
+            "org.datasyslab:geospark-viz_$geosparkSparkCompatibleVersion:$geosparkVersion",
             "org.datasyslab:sernetcdf:0.1.0",
             "org.apache.hadoop:hadoop-aws:$hadoopAws",
-            "com.amazonaws:aws-java-sdk:$awsJavaSdk"
-
-    compile "mrpowers:spark-daria:$sparkDariaVersion"
+            "com.amazonaws:aws-java-sdk:$awsJavaSdk",
+            "mrpowers:spark-daria:$sparkDariaVersion"
 
     testImplementation "org.scalatest:scalatest_2.11:3.0.6",
             "org.scalamock:scalamock_2.11:4.1.0",

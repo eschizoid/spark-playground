@@ -62,8 +62,9 @@ class Transformer extends SparkSupport {
 
   private def parquetTransformer()(df: DataFrame): DataFrame = {
     df.renameColumns(_.toLowerCase)
-      .renameColumns(_.replace(" ", "_"))
+      .renameColumns(_.replace(" - ", "_"))
       .renameColumns(_.replace("-", "_"))
+      .renameColumns(_.replaceAll(" ", "_"))
       .repartition($"year")
   }
 

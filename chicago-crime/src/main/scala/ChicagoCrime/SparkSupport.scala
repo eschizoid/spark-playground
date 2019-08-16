@@ -10,6 +10,7 @@ import org.datasyslab.geosparkviz.sql.utils.GeoSparkVizRegistrator
 trait SparkSupport {
   val spark: SparkSession = SparkSession.builder
     .appName("chicago-crime")
+    .master(sys.env("SPARK_MASTER"))
     .config("spark.serializer", classOf[KryoSerializer].getName)
     .config("spark.kryo.registrator", classOf[GeoSparkKryoRegistrator].getName)
     .getOrCreate()
