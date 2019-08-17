@@ -4,7 +4,7 @@ set -a
 source ../local.env
 set +a
 
-/opt/spark/bin/spark-submit \
+${SPARK_HOME}/spark-submit \
   --master "${SPARK_MASTER}" \
   --deploy-mode "${SPARK_DEPLOY_MODE}" \
   --class "ChicagoCrime.Main" \
