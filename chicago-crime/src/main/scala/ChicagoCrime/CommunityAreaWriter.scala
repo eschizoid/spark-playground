@@ -20,7 +20,8 @@ class CommunityAreaWriter extends SparkSupport {
 
   def start() {
     val df = sqlContext.createDataFrame(csv.rdd, schema)
-    df.write.parquet("s3a://spark-playground-datasets/chicago-crime/silver/chicago_community_area")
+    df.write
+      .parquet("s3a://spark-playground-datasets/chicago-crime/silver/community_area_zip_code_equivalency")
   }
 }
 

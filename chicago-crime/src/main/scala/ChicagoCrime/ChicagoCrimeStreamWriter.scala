@@ -53,7 +53,7 @@ class ChicagoCrimeStreamWriter extends SparkSupport {
     sourceDF = csv,
     transform = parquetTransformer(),
     write = parquetStreamWriter(
-      s"s3a://spark-playground-datasets/chicago-crime/silver",
+      s"s3a://spark-playground-datasets/chicago-crime/silver/crime_history",
       "chicago-crime-checkpoint"
     )
   )
