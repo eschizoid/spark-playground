@@ -1,5 +1,1 @@
-{
-  "sensorId": 31,
-  "currentTemperature": 137,
-  "status": "WARN"
-}
+{"sensorId": 31, "currentTemperature": 137, "status": "WARN"}

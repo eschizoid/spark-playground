@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS measure
+CREATE TABLE IF NOT EXISTS temperature
 (
     measure_id          INT AUTO_INCREMENT,
     sensor_id           TINYINT      NOT NULL,

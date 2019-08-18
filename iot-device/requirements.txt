@@ -1,1 +1,2 @@
 pyspark==2.4.3
+singleton-decorator==1.0.0

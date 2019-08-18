@@ -1,8 +1,7 @@
 version: '3.3'
 services:
   db:
-    image: mysql:5.7
-    restart: always
+    image: mysql:5.7.12
     environment:
       MYSQL_DATABASE: 'measure'
       MYSQL_USER: 'spark'
@@ -13,7 +12,4 @@ services:
     expose:
       - '3306'
     volumes:
-      - my-db:/var/lib/mysql
-
-volumes:
-  my-db:
+      - ./src/main/resources/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
