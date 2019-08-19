@@ -2,7 +2,6 @@ import os
 from time import time as time_
 
 from pyspark.rdd import RDD
-from pyspark.sql.context import SQLContext
 from pyspark.sql.types import StringType
 
 from python.kinesis_consumer import KinesisConsumer
@@ -16,12 +15,11 @@ os.environ[
 class SparkRunner:
     def __init__(self):
         spark_support = SparkSupport()
-        sc = spark_support.get_spark_context()
-        self.kinesis_consumer = KinesisConsumer(sc)
-        self.mysql_producer = MySQLProducer()
+        self.sc = spark_support.get_spark_context()
+        self.spark = spark_support.get_spark_session()
+        self.kinesis_consumer = KinesisConsumer(self.sc)
+        self.mysql_producer = MySQLProducer(self.sc)
 
     def process_rdd(self, time: time_, rdd: RDD) -> None:
         if not rdd.isEmpty():
-            sql_context = SQLContext(rdd.context)
-            temperature_df = sql_context.createDataFrame(rdd, StringType())
-            self.mysql_producer.sink_stream(temperature_df)
+            self.mysql_producer.sink_stream(rdd)
