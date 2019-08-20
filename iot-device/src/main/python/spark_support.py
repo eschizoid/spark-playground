@@ -1,16 +1,15 @@
 import logging
+import os
 
 from pyspark import SparkContext
 from pyspark.sql.session import SparkSession
-from singleton_decorator import singleton
 
 
-@singleton
 class SparkSupport:
 
     def __init__(self):
         spark = SparkSession.builder \
-            .master("local[*]") \
+            .master(os.getenv("SPARK_MASTER")) \
             .getOrCreate()
         self.spark = spark
         self.sc = spark.sparkContext
