@@ -1,26 +1,24 @@
 import logging
+import os
 
-from pyspark.streaming import DStream
 from pyspark.streaming.context import StreamingContext
-from pyspark.streaming.kinesis import KinesisUtils, InitialPositionInStream
-from singleton_decorator import singleton
 
 
-@singleton
 class KinesisConsumer:
 
-    def __init__(self, sc):
+    def __init__(self, sc, spark):
         self.sc = sc
+        self.spark = spark
         self.ssc = StreamingContext(self.sc, 1)
 
-    def get_kinesis_stream(self) -> DStream:
+    def get_kinesis_stream(self):
         logging.info("Starting up consumer...")
-        kinesis_stream = KinesisUtils.createStream(
-            ssc=self.ssc,
-            kinesisAppName="iot-device",
-            streamName="iot-device",
-            endpointUrl="kinesis.us-east-1.amazonaws.com",
-            checkpointInterval=60,
-            initialPositionInStream=InitialPositionInStream.LATEST,
-            regionName="us-east-1")
+        kinesis_stream = self.spark.readStream \
+            .format("kinesis") \
+            .option("streamName", "iot-device") \
+            .option("endpointUrl", "https://kinesis.us-east-1.amazonaws.com") \
+            .option("awsAccessKeyId", os.getenv("AWS_ACCESS_KEY_ID")) \
+            .option("awsSecretKey", os.getenv("AWS_SECRET_ACCESS_KEY")) \
+            .option("startingposition", "EARLIEST") \
+            .load()
         return kinesis_stream

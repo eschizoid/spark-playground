@@ -1,12 +1,14 @@
+import os
+
 from python.spark_runner import SparkRunner
+
+os.environ[
+    "PYSPARK_SUBMIT_ARGS"] = "--packages mysql:mysql-connector-java:5.1.48, pyspark-shell"
 
 
 def main():
     runner = SparkRunner()
-    temperature = runner.kinesis_consumer.get_kinesis_stream()
-    temperature.foreachRDD(runner.process_rdd)
-    runner.kinesis_consumer.ssc.start()
-    runner.kinesis_consumer.ssc.awaitTermination()
+    runner.run()
 
 
 if __name__ == "__main__":
