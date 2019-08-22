@@ -3,8 +3,10 @@ from pyspark.sql.context import SQLContext
 from pyspark.sql.functions import col, get_json_object
 from pyspark.sql.types import StringType, StructType, StructField, IntegerType
 
+from python.mysql_sink import MySQLSink
 
-class MySQLProducer:
+
+class Transformer:
 
     def __init__(self, sc, spark):
         self.sc = sc
@@ -34,4 +36,5 @@ class MySQLProducer:
 
 
 def process_row(row: Row):
-    print(f"Row = {row}") if row is not None else ""
+    sink = MySQLSink()
+    sink.insert_record(row)
