@@ -31,7 +31,7 @@ class Transformer:
                 get_json_object("value", "$.status").alias("status")
             ) \
             .writeStream \
-            .foreach(process_row) \
+            .foreach(lambda rdd: rdd.foreach(process_row)) \
             .start()
 
 

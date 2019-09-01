@@ -17,4 +17,4 @@ ${SPARK_HOME}/bin/spark-submit \
   --conf "spark.kubernetes.driverEnv.AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" \
   --conf "spark.kubernetes.driverEnv.AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" \
   --conf "spark.kubernetes.driverEnv.SPARK_MASTER=${SPARK_MASTER}" \
-  local:///opt/spark/examples/chicago-crime-1.0-SNAPSHOT-all.jar
+  /Users/admin/development/spark-playground/chicago-crime/build/libs/chicago-crime-1.0-SNAPSHOT-all.jar
