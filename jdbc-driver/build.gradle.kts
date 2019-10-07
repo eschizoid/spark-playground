@@ -7,7 +7,6 @@ val sparkVersion = "2.4.3"
 group = "com.sparkplayground"
 version = "1.0-SNAPSHOT"
 
-
 dependencies {
     compile("org.scala-lang:scala-library:$scalaVersion")
     compile("org.scala-lang:scala-reflect:$scalaVersion")
@@ -20,10 +19,10 @@ dependencies {
     compile("mrpowers:spark-daria:$sparkDariaVersion")
     compile("com.datastax.spark:spark-cassandra-connector_2.11:2.4.1")
 
-    //compile(files("/Users/admin/development/spark-playground/jdbc-driver/libs/CassandraJDBC42.jar"))
-    //compile(files("/Users/admin/development/spark-playground/jdbc-driver/libs/cassandra-driver-core-3.1.1.jar"))
-    //compile(files("/Users/admin/development/spark-playground/jdbc-driver/libs/cassandra-driver-extras-3.1.1.jar"))
-    //compile(files("/Users/admin/development/spark-playground/jdbc-driver/libs/cassandra-driver-mapping-3.1.1.jar"))
+    compile(files("libs/CassandraJDBC42.jar"))
+    compile(files("libs/cassandra-driver-core-3.1.1.jar"))
+    compile(files("libs/cassandra-driver-extras-3.1.1.jar"))
+    compile(files("libs/cassandra-driver-mapping-3.1.1.jar"))
 
     testImplementation("org.scalatest:scalatest_2.11:3.0.6")
     testImplementation("org.scalamock:scalamock_2.11:4.1.0")

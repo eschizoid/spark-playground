@@ -19,7 +19,7 @@ class Training extends App with SparkSupport {
     .count()
 
   val crimeTrainingData = crimeDataSequence.filter("year != 2018 and year != 2017")
-  val crimeTestData = crimeDataSequence.filter("year = 2018 and year = 2017")
+  val crimeTestData     = crimeDataSequence.filter("year = 2018 and year = 2017")
 
   val assembler = new VectorAssembler()
     .setInputCols(Array("count"))
