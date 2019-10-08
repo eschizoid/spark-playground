@@ -1,8 +1,8 @@
 package FlightDelayAnalysis
 
 import akka.actor.ActorSystem
-import akka.stream._
 import akka.stream.scaladsl.{Broadcast, GraphDSL, RunnableGraph, Sink, Source}
+import akka.stream.{ActorMaterializer, ClosedShape, KillSwitches, _}
 
 /**
   * ==Sample Output==
@@ -41,34 +41,34 @@ object Main extends Logging {
   def main(args: Array[String]): Unit = {
     logger.debug("Starting Akka Streams application...")
 
-    // @formatter:off
-    val g = RunnableGraph.fromGraph(GraphDSL.create() {
+    val killSwitch = KillSwitches.shared("switch")
 
-      implicit builder =>
-        import GraphDSL.Implicits._
+    val g = RunnableGraph.fromGraph(GraphDSL.create() { implicit builder =>
+      import GraphDSL.Implicits._
 
-        // Source
-        val A: Outlet[String] = builder.add(Source.fromIterator(() => flightProcessor.readCsvFiles())).out
+      // Source
+      val A: Outlet[String] = builder.add(Source.fromIterator(() => flightProcessor.readCsvFiles())).out
 
-        // Flows
-        val B: FlowShape[String, FlightEvent] = builder.add(flightProcessor.csvToFlightEvent())
-        val C: FlowShape[FlightEvent, FlightDelayRecord] = builder.add(flightProcessor.filterAndConvert())
-        val D: UniformFanOutShape[FlightDelayRecord, FlightDelayRecord] = builder.add(Broadcast[FlightDelayRecord](2))
-        val F: FlowShape[FlightDelayRecord, (String, Int, Int)] = builder.add(flightProcessor.averageCarrierDelay())
+      // Flows
+      val B: FlowShape[String, FlightEvent]                           = builder.add(flightProcessor.csvToFlightEvent())
+      val C: FlowShape[FlightEvent, FlightDelayRecord]                = builder.add(flightProcessor.filterAndConvert())
+      val D: UniformFanOutShape[FlightDelayRecord, FlightDelayRecord] = builder.add(Broadcast[FlightDelayRecord](2))
+      val F: FlowShape[FlightDelayRecord, (String, Int, Int)]         = builder.add(flightProcessor.averageCarrierDelay())
 
-        // Sinks
-        val E: Inlet[Any] = builder.add(Sink.ignore).in
-        val G: Inlet[Any] = builder.add(Sink.foreach(flightProcessor.averageSink)).in
+      // Sinks
+      val E: Inlet[Any] = builder.add(Sink.ignore).in
+      val G: Inlet[Any] = builder.add(Sink.foreach(flightProcessor.averageSink)).in
 
-        // Graph
-        A ~> B ~> C ~> D
-        E <~ D
-        G <~ F <~ D
+      // Graph
+      A ~> B ~> C ~> D
+      E <~ D
+      G <~ F <~ D
 
-        ClosedShape
+      ClosedShape
     })
     // @formatter:on
 
     g.run()
+    killSwitch.shutdown()
   }
 }
