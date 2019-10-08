@@ -2,7 +2,11 @@ package FlightDelayAnalysis
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Broadcast, GraphDSL, RunnableGraph, Sink, Source}
-import akka.stream.{ActorMaterializer, ClosedShape, KillSwitches, _}
+import akka.stream.{ActorMaterializer, ClosedShape, _}
+
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.duration._
 
 /**
   * ==Sample Output==
@@ -34,16 +38,17 @@ import akka.stream.{ActorMaterializer, ClosedShape, KillSwitches, _}
   */
 object Main extends Logging {
 
-  implicit val system       = ActorSystem("flight-delay-analysis")
-  implicit val materializer = ActorMaterializer()
-  val flightProcessor       = FlightDelayProcessor()
+  implicit val system: ActorSystem             = ActorSystem("flight-delay-analysis")
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
+  val flightProcessor                          = FlightDelayProcessor()
 
   def main(args: Array[String]): Unit = {
     logger.debug("Starting Akka Streams application...")
 
-    val killSwitch = KillSwitches.shared("switch")
+    // Sink
+    val sink = Sink.foreach(flightProcessor.averageSink)
 
-    val g = RunnableGraph.fromGraph(GraphDSL.create() { implicit builder =>
+    val g = RunnableGraph.fromGraph(GraphDSL.create(sink) { implicit builder => S =>
       import GraphDSL.Implicits._
 
       // Source
@@ -52,23 +57,18 @@ object Main extends Logging {
       // Flows
       val B: FlowShape[String, FlightEvent]                           = builder.add(flightProcessor.csvToFlightEvent())
       val C: FlowShape[FlightEvent, FlightDelayRecord]                = builder.add(flightProcessor.filterAndConvert())
-      val D: UniformFanOutShape[FlightDelayRecord, FlightDelayRecord] = builder.add(Broadcast[FlightDelayRecord](2))
+      val D: UniformFanOutShape[FlightDelayRecord, FlightDelayRecord] = builder.add(Broadcast[FlightDelayRecord](1))
       val F: FlowShape[FlightDelayRecord, (String, Int, Int)]         = builder.add(flightProcessor.averageCarrierDelay())
 
-      // Sinks
-      val E: Inlet[Any] = builder.add(Sink.ignore).in
-      val G: Inlet[Any] = builder.add(Sink.foreach(flightProcessor.averageSink)).in
-
       // Graph
-      A ~> B ~> C ~> D
-      E <~ D
-      G <~ F <~ D
-
+      A ~> B ~> C ~> D ~> F ~> S
       ClosedShape
     })
-    // @formatter:on
 
-    g.run()
-    killSwitch.shutdown()
+    val future = g.run()
+    future.onComplete { _ =>
+      system.terminate()
+    }
+    Await.result(system.whenTerminated, Duration.Inf)
   }
 }
