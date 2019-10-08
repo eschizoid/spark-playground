@@ -284,3 +284,4 @@ gradle-app.setting
 /chicago-crime/chicago-crime-checkpoint/
 /chicago-crime/src/main/resources/arealm.csv
 /chicago-crime/src/main/resources/Crimes_-_2001_to_present.csv
+/akka-flight-analysis/src/main/resources/csv/

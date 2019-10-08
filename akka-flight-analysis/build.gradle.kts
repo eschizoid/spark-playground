@@ -1,11 +1,11 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer
 
-val awsJavaSdk = "1.7.4"
+val awsJavaSdkVersion = "1.7.4"
 val akkaVersion = "2.5.25"
-val geosparkSparkCompatibleVersion = "2.3"
-val geosparkVersion = "1.2.0"
-val hadoopAws = "2.7.3"
-val scalaMinorVersion = "2.11.8"
+val hadoopAwsVersion = "2.7.3"
+val logbackVersion = "1.2.3"
+val scalaMinorVersion = "2.11.12"
 val scalaVersion = "2.11"
 val sparkDariaVersion = "0.31.0-s_${scalaVersion}"
 val sparkVersion = "2.4.3"
@@ -25,6 +25,9 @@ dependencies {
     compileOnly("org.apache.spark:spark-sql_${scalaVersion}:$sparkVersion")
     compileOnly("mrpowers:spark-daria:$sparkDariaVersion")
 
+    // Logging
+    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+
     //Akka
     compile("com.typesafe.akka:akka-stream_${scalaVersion}:${akkaVersion}")
     compile("com.typesafe.akka:akka-actor_${scalaVersion}:${akkaVersion}")
@@ -43,6 +46,9 @@ tasks {
         }
         dependencies {
             exclude("*.csv")
+        }
+        transform(AppendingTransformer::class.java) {
+            resource = "reference.conf"
         }
     }
 }
