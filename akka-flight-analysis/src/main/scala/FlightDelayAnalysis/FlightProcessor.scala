@@ -22,7 +22,7 @@ class FlightDelayProcessor extends FlightProcessor with Logging {
 
   def readCsvFiles(): Iterator[String] = {
     new File(
-      "/Users/admin/development/spark-playground/akka-flight-analysis/src/main/resources/csv"
+      "/Users/admin/development/spark-playground/akka-flight-analysis/src/test/resources/csv"
     ).listFiles
       .filter(_.getName.endsWith(".csv"))
       .map(file => Source.fromFile(file.getAbsoluteFile, "utf-8").getLines())

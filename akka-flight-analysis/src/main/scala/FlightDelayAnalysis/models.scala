@@ -36,5 +36,5 @@ case class FlightDelayRecord(year: String,
                              flightNum: String,
                              uniqueCarrier: String,
                              arrDelayMins: String) {
-  override def toString = s"${year}/${month}/${dayOfMonth} - ${uniqueCarrier} ${flightNum} - ${arrDelayMins}"
+  override def toString = s"$year/$month/$dayOfMonth - $uniqueCarrier $flightNum - $arrDelayMins"
 }

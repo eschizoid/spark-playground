@@ -45,7 +45,7 @@ tasks {
             attributes(mapOf("Main-Class" to "FlightDelayAnalysis.Main"))
         }
         dependencies {
-            exclude("*.csv")
+            exclude("*csv*")
         }
         transform(AppendingTransformer::class.java) {
             resource = "reference.conf"
