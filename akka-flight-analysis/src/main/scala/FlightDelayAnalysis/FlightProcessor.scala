@@ -99,9 +99,7 @@ class FlightDelayProcessor extends FlightProcessor with Logging {
   def averageSink[T](tuple: T): Unit = {
     tuple match {
       case (a: String, b: Int, c: Int) =>
-        logger.debug(
-          s"Delays for carrier $a: ${Try(c / b).getOrElse(0)} average minutes, $b delayed flights"
-        )
+        logger.debug(s"Delays for carrier $a: ${Try(c / b).getOrElse(0)} average minutes, $b delayed flights")
       case x => logger.error("no idea what " + x + "is!")
     }
   }
