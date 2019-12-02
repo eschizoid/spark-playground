@@ -12,13 +12,13 @@ object Main extends Logging {
 
   implicit val system: ActorSystem             = ActorSystem("flight-delay-analysis")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
-  val flightProcessor                          = FlightDelayProcessor()
+  val flightProcessor: FlightDelayProcessor    = FlightDelayProcessor()
 
   def main(args: Array[String]): Unit = {
     logger.debug("Starting Akka Streams application...")
 
     // Sink
-    val sink = Sink.foreach(flightProcessor.averageSink)
+    val sink = Sink.foreach(flightProcessor.averageSink[(String, Int, Int)])
 
     val g = RunnableGraph.fromGraph(GraphDSL.create(sink) { implicit builder => S =>
       import GraphDSL.Implicits._
